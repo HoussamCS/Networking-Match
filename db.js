@@ -1,41 +1,36 @@
-const path = require('path');
-const fs = require('fs');
-const { DatabaseSync } = require('node:sqlite');
+const { neon } = require('@neondatabase/serverless');
 
-const dataDir = path.join(__dirname, 'data');
-if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir);
+const sql = neon(process.env.DATABASE_URL);
 
-const db = new DatabaseSync(path.join(dataDir, 'networking.db'));
+let readyPromise = null;
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS people (
-    id TEXT PRIMARY KEY,
-    nom TEXT NOT NULL,
-    occupation TEXT,
-    categorie TEXT NOT NULL,
-    email TEXT,
-    telephone TEXT,
-    photo TEXT,
-    created_at TEXT DEFAULT (datetime('now'))
-  );
+async function initSchema() {
+  await sql`
+    CREATE TABLE IF NOT EXISTS people (
+      id TEXT PRIMARY KEY,
+      nom TEXT NOT NULL,
+      occupation TEXT,
+      categorie TEXT NOT NULL,
+      email TEXT,
+      telephone TEXT,
+      photo TEXT,
+      created_at TIMESTAMPTZ DEFAULT now()
+    );
+  `;
+  await sql`
+    CREATE TABLE IF NOT EXISTS matches (
+      id SERIAL PRIMARY KEY,
+      person_id TEXT NOT NULL,
+      matched_person_id TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT now()
+    );
+  `;
+}
 
-  CREATE TABLE IF NOT EXISTS matches (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    person_id TEXT NOT NULL,
-    matched_person_id TEXT NOT NULL,
-    created_at TEXT DEFAULT (datetime('now'))
-  );
-`);
+// Runs once per warm serverless instance (cached), re-runs on the next cold start.
+function ready() {
+  if (!readyPromise) readyPromise = initSchema();
+  return readyPromise;
+}
 
-// Thin wrapper so server.js can keep using a better-sqlite3-like API
-// (.prepare(sql).get/all/run) on top of node:sqlite's DatabaseSync.
-module.exports = {
-  prepare(sql) {
-    const stmt = db.prepare(sql);
-    return {
-      get: (...args) => stmt.get(...args),
-      all: (...args) => stmt.all(...args),
-      run: (...args) => stmt.run(...args),
-    };
-  },
-};
+module.exports = { sql, ready };
