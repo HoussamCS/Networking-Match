@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
 const QRCode = require('qrcode');
 const { randomUUID } = require('crypto');
 const db = require('./db');
@@ -8,6 +10,43 @@ const db = require('./db');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_KEY = process.env.ADMIN_KEY || 'changez-moi';
+
+const UPLOADS_DIR = path.join(__dirname, 'public', 'uploads');
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+
+const EXT_BY_MIME = {
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/webp': '.webp',
+  'image/heic': '.heic',
+  'image/heif': '.heif',
+};
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, UPLOADS_DIR),
+    filename: (req, file, cb) => {
+      const ext = EXT_BY_MIME[file.mimetype] || path.extname(file.originalname) || '';
+      cb(null, `${randomUUID()}${ext}`);
+    },
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    cb(null, file.mimetype.startsWith('image/'));
+  },
+});
+
+function uploadPhoto(req, res, next) {
+  upload.single('photo')(req, res, (err) => {
+    if (err) {
+      return res.status(400).render('register', {
+        categories: CATEGORIES,
+        error: "La photo n'a pas pu être envoyée (fichier trop lourd, 5 Mo max). Réessayez.",
+      });
+    }
+    next();
+  });
+}
 
 const CATEGORIES = [
   { value: 'entrepreneur', label: 'Entrepreneur' },
@@ -94,10 +133,11 @@ app.get('/register', (req, res) => {
   res.render('register', { categories: CATEGORIES, error: null });
 });
 
-app.post('/register', (req, res) => {
+app.post('/register', uploadPhoto, (req, res) => {
   const { nom, occupation, categorie, email, telephone } = req.body;
 
   if (!nom || !nom.trim() || !CATEGORY_LABELS[categorie]) {
+    if (req.file) fs.unlink(req.file.path, () => {});
     return res.status(400).render('register', {
       categories: CATEGORIES,
       error: 'Merci de renseigner au moins votre nom et votre catégorie.',
@@ -105,9 +145,10 @@ app.post('/register', (req, res) => {
   }
 
   const id = randomUUID();
+  const photo = req.file ? req.file.filename : null;
   db.prepare(
-    `INSERT INTO people (id, nom, occupation, categorie, email, telephone) VALUES (?, ?, ?, ?, ?, ?)`
-  ).run(id, nom.trim(), (occupation || '').trim(), categorie, (email || '').trim(), (telephone || '').trim());
+    `INSERT INTO people (id, nom, occupation, categorie, email, telephone, photo) VALUES (?, ?, ?, ?, ?, ?, ?)`
+  ).run(id, nom.trim(), (occupation || '').trim(), categorie, (email || '').trim(), (telephone || '').trim(), photo);
 
   res.redirect(`/profile/${id}`);
 });

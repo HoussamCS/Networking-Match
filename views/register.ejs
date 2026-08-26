@@ -8,6 +8,7 @@
 </head>
 <body>
   <div class="wrap">
+    <a class="back-link" href="/">← Accueil</a>
     <div class="card">
       <h1>Inscription</h1>
       <p class="lead">Remplissez vos informations, vous recevrez ensuite votre QR code personnel.</p>
@@ -16,7 +17,7 @@
         <div class="error"><%= error %></div>
       <% } %>
 
-      <form method="POST" action="/register">
+      <form method="POST" action="/register" enctype="multipart/form-data">
         <label for="nom">Nom complet *</label>
         <input type="text" id="nom" name="nom" placeholder="Ex. Sarah El Amrani" required>
 
@@ -31,6 +32,15 @@
           <% }) %>
         </select>
 
+        <label for="photo">Photo (pour être reconnu·e lors du match)</label>
+        <div class="photo-picker">
+          <div class="photo-preview" id="photoPreview">📷</div>
+          <div class="photo-actions">
+            <label for="photo" class="btn btn-secondary photo-btn">Prendre / choisir une photo</label>
+            <input type="file" id="photo" name="photo" accept="image/*" class="photo-input">
+          </div>
+        </div>
+
         <label for="email">Email (optionnel)</label>
         <input type="email" id="email" name="email" placeholder="vous@exemple.com">
 
@@ -41,5 +51,20 @@
       </form>
     </div>
   </div>
+
+  <script>
+    var input = document.getElementById('photo');
+    var preview = document.getElementById('photoPreview');
+    input.addEventListener('change', function () {
+      var file = input.files && input.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        preview.style.backgroundImage = 'url(' + e.target.result + ')';
+        preview.textContent = '';
+      };
+      reader.readAsDataURL(file);
+    });
+  </script>
 </body>
 </html>

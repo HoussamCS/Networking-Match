@@ -15,6 +15,7 @@ db.exec(`
     categorie TEXT NOT NULL,
     email TEXT,
     telephone TEXT,
+    photo TEXT,
     created_at TEXT DEFAULT (datetime('now'))
   );
 

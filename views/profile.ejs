@@ -9,6 +9,9 @@
 <body>
   <div class="wrap">
     <div class="card">
+      <% if (person.photo) { %>
+        <img class="profile-photo" src="/uploads/<%= person.photo %>" alt="Photo de <%= person.nom %>">
+      <% } %>
       <span class="tag"><%= categoryLabel %></span>
       <h1>Bienvenue, <%= person.nom %> 👋</h1>
       <p class="lead"><%= person.occupation || 'Profil enregistré.' %></p>

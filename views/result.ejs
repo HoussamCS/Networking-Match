@@ -8,10 +8,17 @@
 </head>
 <body>
   <div class="wrap">
+    <a class="back-link" href="/profile/<%= person.id %>">← Mon profil</a>
     <div class="card match-result">
       <% if (match) { %>
         <span class="tag"><%= categoryLabel %></span>
-        <div class="avatar-circle"><%= match.nom.trim().charAt(0).toUpperCase() %></div>
+
+        <% if (match.photo) { %>
+          <img class="match-photo" src="/uploads/<%= match.photo %>" alt="Photo de <%= match.nom %>">
+        <% } else { %>
+          <div class="avatar-circle"><%= match.nom.trim().charAt(0).toUpperCase() %></div>
+        <% } %>
+
         <h1><%= match.nom %></h1>
         <p class="lead"><%= match.occupation || '—' %></p>
 

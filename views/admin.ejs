@@ -26,11 +26,18 @@
 
       <table>
         <thead>
-          <tr><th>Nom</th><th>Occupation</th><th>Catégorie</th><th>Inscrit le</th></tr>
+          <tr><th></th><th>Nom</th><th>Occupation</th><th>Catégorie</th><th>Inscrit le</th></tr>
         </thead>
         <tbody>
           <% people.forEach(function(p) { %>
             <tr>
+              <td>
+                <% if (p.photo) { %>
+                  <img class="admin-thumb" src="/uploads/<%= p.photo %>" alt="">
+                <% } else { %>
+                  <span class="admin-thumb-placeholder"><%= p.nom.trim().charAt(0).toUpperCase() %></span>
+                <% } %>
+              </td>
               <td><%= p.nom %></td>
               <td><%= p.occupation %></td>
               <td><%= categoryLabel[p.categorie] %></td>
