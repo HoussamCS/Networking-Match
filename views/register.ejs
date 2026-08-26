@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inscription — Networking Match</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Inscription</h1>
+      <p class="lead">Remplissez vos informations, vous recevrez ensuite votre QR code personnel.</p>
+
+      <% if (error) { %>
+        <div class="error"><%= error %></div>
+      <% } %>
+
+      <form method="POST" action="/register">
+        <label for="nom">Nom complet *</label>
+        <input type="text" id="nom" name="nom" placeholder="Ex. Sarah El Amrani" required>
+
+        <label for="occupation">Occupation / activité</label>
+        <input type="text" id="occupation" name="occupation" placeholder="Ex. Fondatrice de Startup X">
+
+        <label for="categorie">Je suis... *</label>
+        <select id="categorie" name="categorie" required>
+          <option value="" disabled selected>Choisir une catégorie</option>
+          <% categories.forEach(function(c) { %>
+            <option value="<%= c.value %>"><%= c.label %></option>
+          <% }) %>
+        </select>
+
+        <label for="email">Email (optionnel)</label>
+        <input type="email" id="email" name="email" placeholder="vous@exemple.com">
+
+        <label for="telephone">Téléphone (optionnel)</label>
+        <input type="tel" id="telephone" name="telephone" placeholder="+212 6 00 00 00 00">
+
+        <button type="submit">Générer mon QR code</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,227 @@
+:root {
+  --bg1: #6d28d9;
+  --bg2: #2563eb;
+  --card: #ffffff;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --accent: #7c3aed;
+  --accent-dark: #5b21b6;
+  --border: #e5e7eb;
+  --success: #059669;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: linear-gradient(160deg, var(--bg1), var(--bg2));
+  color: var(--text);
+  display: flex;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.wrap {
+  width: 100%;
+  max-width: 480px;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 20px;
+  padding: 28px 24px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+  margin-bottom: 16px;
+}
+
+h1 {
+  font-size: 1.5rem;
+  margin: 0 0 4px;
+}
+
+h2 {
+  font-size: 1.1rem;
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+p.lead {
+  color: var(--muted);
+  margin-top: 0;
+}
+
+label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 16px 0 6px;
+}
+
+input[type=text], input[type=email], input[type=tel], select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 1rem;
+  background: #fafafa;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: #fff;
+}
+
+button, .btn {
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+  padding: 14px 16px;
+  border: none;
+  border-radius: 12px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 20px;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+button:hover, .btn:hover { background: var(--accent-dark); }
+
+.btn-secondary {
+  background: #fff;
+  color: var(--accent);
+  border: 2px solid var(--accent);
+}
+.btn-secondary:hover { background: #f5f3ff; }
+
+.btn-outline {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  margin-top: 10px;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.category-btn {
+  padding: 18px 10px;
+  border-radius: 14px;
+  border: 2px solid var(--border);
+  background: #fafafa;
+  text-align: center;
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.category-btn .count {
+  display: block;
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.category-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.category-btn:not(:disabled):hover {
+  border-color: var(--accent);
+  background: #f5f3ff;
+}
+
+.qr-box {
+  text-align: center;
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px dashed var(--border);
+}
+
+.qr-box img { max-width: 220px; width: 100%; }
+
+.tag {
+  display: inline-block;
+  background: #ede9fe;
+  color: var(--accent-dark);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.error {
+  background: #fef2f2;
+  color: #b91c1c;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+.match-result {
+  text-align: center;
+}
+
+.avatar-circle {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--bg1), var(--bg2));
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+th, td {
+  text-align: left;
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--border);
+}
+th { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; }
+
+.stats {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.stat {
+  flex: 1;
+  min-width: 90px;
+  background: #f5f3ff;
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+}
+.stat .n { font-size: 1.4rem; font-weight: 800; color: var(--accent-dark); }
+.stat .l { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; }
+
+.muted { color: var(--muted); font-size: 0.85rem; }
+
+a.plain { color: var(--accent); }

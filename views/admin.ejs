@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin — Networking Match</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>.wrap { max-width: 760px; }</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Tableau de bord</h1>
+      <p class="lead"><%= people.length %> inscrit(s) · <%= matchCount %> match(s) réalisé(s)</p>
+
+      <div class="stats">
+        <% Object.keys(counts).forEach(function(cat) { %>
+          <div class="stat">
+            <div class="n"><%= counts[cat] %></div>
+            <div class="l"><%= categoryLabel[cat] %></div>
+          </div>
+        <% }) %>
+      </div>
+
+      <a class="btn" href="/admin/export.csv?key=<%= key %>">⬇️ Exporter en CSV</a>
+
+      <table>
+        <thead>
+          <tr><th>Nom</th><th>Occupation</th><th>Catégorie</th><th>Inscrit le</th></tr>
+        </thead>
+        <tbody>
+          <% people.forEach(function(p) { %>
+            <tr>
+              <td><%= p.nom %></td>
+              <td><%= p.occupation %></td>
+              <td><%= categoryLabel[p.categorie] %></td>
+              <td><%= p.created_at %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

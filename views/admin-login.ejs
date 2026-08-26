@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin — Networking Match</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Accès organisateur</h1>
+      <% if (error) { %>
+        <div class="error"><%= error %></div>
+      <% } %>
+      <form method="GET" action="/admin">
+        <label for="key">Clé admin</label>
+        <input type="text" id="key" name="key" required>
+        <button type="submit">Entrer</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

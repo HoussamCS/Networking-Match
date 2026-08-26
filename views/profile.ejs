@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mon QR code — Networking Match</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <span class="tag"><%= categoryLabel %></span>
+      <h1>Bienvenue, <%= person.nom %> 👋</h1>
+      <p class="lead"><%= person.occupation || 'Profil enregistré.' %></p>
+
+      <div class="qr-box">
+        <img src="<%= qrDataUrl %>" alt="QR code de <%= person.nom %>">
+        <p class="muted">Faites scanner ce QR code, ou utilisez directement le bouton ci-dessous pour trouver un match.</p>
+      </div>
+
+      <a class="btn" href="/match/<%= person.id %>">Trouver un match</a>
+      <p class="muted" style="margin-top:16px;">Gardez cette page ou faites une capture d'écran de votre QR code.</p>
+    </div>
+  </div>
+</body>
+</html>
