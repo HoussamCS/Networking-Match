@@ -33,12 +33,13 @@
           <p class="muted">📱 <a class="plain" href="tel:<%= target.telephone %>"><%= target.telephone %></a></p>
         <% } %>
 
-        <p class="tag" style="background:#dcfce7;color:#166534;margin-top:12px;">✓ Ajouté à vos matchs</p>
+        <p class="tag match-card-badge" style="background:#dcfce7;color:#166534;margin-top:12px;">✓ Ajouté à vos matchs</p>
 
         <a class="btn" href="/scan">Scanner quelqu'un d'autre</a>
         <a class="btn btn-outline" href="/matches">Voir mes matchs</a>
       <% } %>
     </div>
+    <%- include('partials/footer') %>
   </div>
 </body>
 </html>

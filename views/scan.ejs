@@ -19,6 +19,7 @@
       <p class="muted" id="scan-status" style="margin-top:12px;">Ouverture de la caméra…</p>
       <p class="muted" id="scan-debug" style="margin-top:4px; font-size:0.75rem; word-break:break-all;"></p>
     </div>
+    <%- include('partials/footer') %>
   </div>
 
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -47,7 +48,10 @@
 
       handled = true;
       status.textContent = 'Connexion en cours…';
-      window.location.href = origin + pathname;
+      document.querySelector('.wrap').classList.add('scan-success-transition');
+      setTimeout(function () {
+        window.location.href = origin + pathname;
+      }, 280);
     }
 
     var qr = new Html5Qrcode('qr-reader');
