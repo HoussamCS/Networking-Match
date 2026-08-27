@@ -72,7 +72,14 @@ app.use(
 );
 
 function baseUrl(req) {
-  return process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+  if (process.env.BASE_URL) {
+    try {
+      return new URL(process.env.BASE_URL).origin;
+    } catch {
+      // malformed BASE_URL (e.g. missing https://) — fall back below
+    }
+  }
+  return `${req.protocol}://${req.get('host')}`;
 }
 
 async function getPerson(id) {

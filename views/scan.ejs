@@ -28,13 +28,23 @@
 
     function onScanSuccess(decodedText) {
       if (handled) return;
-      if (!decodedText.startsWith(origin + '/connect/')) {
+
+      var pathname;
+      try {
+        pathname = new URL(decodedText, origin).pathname;
+      } catch (e) {
+        status.textContent = 'QR code illisible.';
+        return;
+      }
+
+      if (!pathname.startsWith('/connect/')) {
         status.textContent = "Ce QR code ne vient pas de Networking Match.";
         return;
       }
+
       handled = true;
       status.textContent = 'Connexion en cours…';
-      window.location.href = decodedText;
+      window.location.href = origin + pathname;
     }
 
     var qr = new Html5Qrcode('qr-reader');
