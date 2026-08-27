@@ -17,16 +17,19 @@
         <div id="qr-reader"></div>
       </div>
       <p class="muted" id="scan-status" style="margin-top:12px;">Ouverture de la caméra…</p>
+      <p class="muted" id="scan-debug" style="margin-top:4px; font-size:0.75rem; word-break:break-all;"></p>
     </div>
   </div>
 
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <script>
     var status = document.getElementById('scan-status');
+    var debug = document.getElementById('scan-debug');
     var origin = window.location.origin;
     var handled = false;
 
     function onScanSuccess(decodedText) {
+      debug.textContent = 'Détecté : ' + decodedText;
       if (handled) return;
 
       var pathname;

@@ -64,6 +64,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Never let the browser or an edge cache serve a stale copy of a dynamic
+// page — this app changes fast during setup and stale HTML/JS causes very
+// confusing bugs (old scan.ejs logic silently still running, etc).
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
+
 app.use(
   ah(async (req, res, next) => {
     await ready();
