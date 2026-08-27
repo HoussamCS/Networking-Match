@@ -134,6 +134,31 @@ app.get('/register', (req, res) => {
   res.render('register', { categories: CATEGORIES, error: null });
 });
 
+// Proxies private Blob photos: the stored URL isn't fetchable directly by
+// the browser, so we fetch it here with the Blob token and stream it back.
+app.get(
+  '/photo',
+  ah(async (req, res) => {
+    const src = req.query.src;
+    let url;
+    try {
+      url = new URL(src);
+    } catch {
+      return res.status(400).end();
+    }
+    if (!url.hostname.endsWith('.vercel-storage.com')) return res.status(400).end();
+
+    const upstream = await fetch(url, {
+      headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
+    });
+    if (!upstream.ok) return res.status(upstream.status).end();
+
+    res.setHeader('Content-Type', upstream.headers.get('content-type') || 'application/octet-stream');
+    res.setHeader('Cache-Control', 'private, max-age=3600');
+    res.send(Buffer.from(await upstream.arrayBuffer()));
+  })
+);
+
 app.post(
   '/register',
   uploadPhoto,
@@ -151,7 +176,7 @@ app.post(
     if (req.file) {
       const ext = EXT_BY_MIME[req.file.mimetype] || '';
       const blob = await put(`photos/${randomUUID()}${ext}`, req.file.buffer, {
-        access: 'public',
+        access: 'private',
         contentType: req.file.mimetype,
       });
       photo = blob.url;
