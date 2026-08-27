@@ -2,7 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const multer = require('multer');
-const { put } = require('@vercel/blob');
+const { put, get } = require('@vercel/blob');
+const { Readable } = require('stream');
 const QRCode = require('qrcode');
 const { randomUUID } = require('crypto');
 const { sql, ready } = require('./db');
@@ -134,28 +135,21 @@ app.get('/register', (req, res) => {
   res.render('register', { categories: CATEGORIES, error: null });
 });
 
-// Proxies private Blob photos: the stored URL isn't fetchable directly by
+// Serves private Blob photos: the stored pathname isn't fetchable directly by
 // the browser, so we fetch it here with the Blob token and stream it back.
 app.get(
   '/photo',
   ah(async (req, res) => {
-    const src = req.query.src;
-    let url;
-    try {
-      url = new URL(src);
-    } catch {
-      return res.status(400).end();
-    }
-    if (!url.hostname.endsWith('.vercel-storage.com')) return res.status(400).end();
+    const pathname = req.query.pathname;
+    if (!pathname) return res.status(400).end();
 
-    const upstream = await fetch(url, {
-      headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
-    });
-    if (!upstream.ok) return res.status(upstream.status).end();
+    const result = await get(pathname, { access: 'private' });
+    if (result === null) return res.status(404).end();
 
-    res.setHeader('Content-Type', upstream.headers.get('content-type') || 'application/octet-stream');
-    res.setHeader('Cache-Control', 'private, max-age=3600');
-    res.send(Buffer.from(await upstream.arrayBuffer()));
+    res.setHeader('Content-Type', result.blob.contentType);
+    res.setHeader('Cache-Control', 'private, no-cache');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    Readable.fromWeb(result.stream).pipe(res);
   })
 );
 
@@ -179,7 +173,7 @@ app.post(
         access: 'private',
         contentType: req.file.mimetype,
       });
-      photo = blob.url;
+      photo = blob.pathname;
     }
 
     const id = randomUUID();

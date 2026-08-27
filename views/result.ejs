@@ -14,7 +14,7 @@
         <span class="tag"><%= categoryLabel %></span>
 
         <% if (match.photo) { %>
-          <img class="match-photo" src="/photo?src=<%= encodeURIComponent(match.photo) %>" alt="Photo de <%= match.nom %>">
+          <img class="match-photo" src="/photo?pathname=<%= encodeURIComponent(match.photo) %>" alt="Photo de <%= match.nom %>">
         <% } else { %>
           <div class="avatar-circle"><%= match.nom.trim().charAt(0).toUpperCase() %></div>
         <% } %>

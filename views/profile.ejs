@@ -10,7 +10,7 @@
   <div class="wrap">
     <div class="card">
       <% if (person.photo) { %>
-        <img class="profile-photo" src="/photo?src=<%= encodeURIComponent(person.photo) %>" alt="Photo de <%= person.nom %>">
+        <img class="profile-photo" src="/photo?pathname=<%= encodeURIComponent(person.photo) %>" alt="Photo de <%= person.nom %>">
       <% } %>
       <span class="tag"><%= categoryLabel %></span>
       <h1>Bienvenue, <%= person.nom %> 👋</h1>

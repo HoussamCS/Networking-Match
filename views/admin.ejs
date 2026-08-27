@@ -33,7 +33,7 @@
             <tr>
               <td>
                 <% if (p.photo) { %>
-                  <img class="admin-thumb" src="/photo?src=<%= encodeURIComponent(p.photo) %>" alt="">
+                  <img class="admin-thumb" src="/photo?pathname=<%= encodeURIComponent(p.photo) %>" alt="">
                 <% } else { %>
                   <span class="admin-thumb-placeholder"><%= p.nom.trim().charAt(0).toUpperCase() %></span>
                 <% } %>
