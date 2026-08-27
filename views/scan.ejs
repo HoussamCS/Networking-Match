@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scanner — Networking Match</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="wrap">
+    <%- include('partials/nav', { active: 'scan' }) %>
+    <div class="card">
+      <h1>Scanner un QR code</h1>
+      <p class="lead">Visez le QR code de la personne que vous venez de rencontrer.</p>
+
+      <div class="scan-video-box">
+        <div id="qr-reader"></div>
+      </div>
+      <p class="muted" id="scan-status" style="margin-top:12px;">Ouverture de la caméra…</p>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script>
+    var status = document.getElementById('scan-status');
+    var origin = window.location.origin;
+    var handled = false;
+
+    function onScanSuccess(decodedText) {
+      if (handled) return;
+      if (!decodedText.startsWith(origin + '/connect/')) {
+        status.textContent = "Ce QR code ne vient pas de Networking Match.";
+        return;
+      }
+      handled = true;
+      status.textContent = 'Connexion en cours…';
+      window.location.href = decodedText;
+    }
+
+    var qr = new Html5Qrcode('qr-reader');
+    qr.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: 240 },
+      onScanSuccess
+    ).then(function () {
+      status.textContent = 'Visez le QR code de la personne en face de vous.';
+    }).catch(function () {
+      status.textContent = "Impossible d'accéder à la caméra. Vérifiez les autorisations de votre navigateur.";
+    });
+  </script>
+</body>
+</html>

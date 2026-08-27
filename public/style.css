@@ -226,6 +226,69 @@ th { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; }
 
 a.plain { color: var(--accent); }
 
+.app-nav {
+  display: flex;
+  background: rgba(255,255,255,0.12);
+  border-radius: 14px;
+  padding: 4px;
+  margin-bottom: 16px;
+  gap: 4px;
+}
+
+.app-nav a {
+  flex: 1;
+  text-align: center;
+  padding: 10px 6px;
+  border-radius: 10px;
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.app-nav a.active {
+  background: #fff;
+  color: var(--accent-dark);
+  opacity: 1;
+}
+
+.scan-video-box {
+  border-radius: 16px;
+  overflow: hidden;
+  background: #000;
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scan-video-box video, .scan-video-box #qr-reader {
+  width: 100%;
+}
+
+.match-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.match-card img, .match-card .avatar-circle {
+  width: 56px;
+  height: 56px;
+  margin: 0;
+  flex-shrink: 0;
+  font-size: 1.2rem;
+}
+
+.match-card .info h3 { margin: 0; font-size: 1rem; }
+.match-card .info p { margin: 2px 0 0; font-size: 0.85rem; color: var(--muted); }
+
 .back-link {
   display: inline-block;
   color: #fff;

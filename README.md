@@ -7,15 +7,22 @@ dans ces deux services plutôt que dans des fichiers locaux.
 
 ## Comment ça marche
 
+Chaque appareil (téléphone) a sa propre identité, retenue via un cookie posé à l'inscription —
+scanner le QR de quelqu'un d'autre ne vous connecte jamais "en tant que" cette personne, ça vous
+ajoute simplement un contact.
+
 1. Chaque participant remplit un formulaire (`/register`) : nom, occupation, catégorie
    (Entrepreneur / Investisseur / Associé / Autre), une photo (recommandée, pour être reconnu·e),
    email et téléphone optionnels.
-2. Il arrive sur une page profil (`/profile/:id`) avec **son QR code personnel**.
-3. Quand quelqu'un scanne ce QR (ou clique sur "Trouver un match"), il arrive sur `/match/:id`
-   et choisit la catégorie qu'il veut rencontrer.
-4. L'app tire une personne au hasard dans cette catégorie (en évitant de répéter un match déjà
-   fait) et affiche sa photo, son nom, son occupation et ses coordonnées. Bouton "Nouveau match"
-   pour relancer.
+2. Il arrive sur **Mon profil** (`/profile`) avec son propre QR code personnel.
+3. Trois sections accessibles à tout moment via la barre de navigation :
+   - **Mon profil** — mes infos + mon QR à faire scanner.
+   - **Scanner** (`/scan`) — ouvre la caméra pour scanner le QR de quelqu'un d'autre. Le
+     scan connecte immédiatement les deux personnes et affiche la carte (photo, nom, occupation,
+     contact) de la personne scannée.
+   - **Mes matchs** (`/matches`) — liste de toutes les personnes rencontrées jusque-là.
+4. Si quelqu'un scanne un QR sans être encore inscrit, il est renvoyé vers le formulaire
+   d'inscription puis automatiquement reconnecté à la bonne personne une fois inscrit.
 5. `/admin?key=VOTRE_CLE` : tableau de bord organisateur (liste des inscrits avec vignette photo,
    compteurs par catégorie, export CSV).
 

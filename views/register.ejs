@@ -18,6 +18,8 @@
       <% } %>
 
       <form method="POST" action="/register" enctype="multipart/form-data">
+        <input type="hidden" name="next" value="<%= next %>">
+
         <label for="nom">Nom complet *</label>
         <input type="text" id="nom" name="nom" placeholder="Ex. Sarah El Amrani" required>
 

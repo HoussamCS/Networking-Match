@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const multer = require('multer');
+const cookieParser = require('cookie-parser');
 const { put, get } = require('@vercel/blob');
 const { Readable } = require('stream');
 const QRCode = require('qrcode');
@@ -11,6 +12,8 @@ const { sql, ready } = require('./db');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_KEY = process.env.ADMIN_KEY || 'changez-moi';
+const PID_COOKIE = 'pid';
+const PID_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days, comfortably covers the event
 
 const CATEGORIES = [
   { value: 'entrepreneur', label: 'Entrepreneur' },
@@ -42,6 +45,7 @@ function uploadPhoto(req, res, next) {
       return res.status(400).render('register', {
         categories: CATEGORIES,
         error: "La photo n'a pas pu être envoyée (fichier trop lourd, 5 Mo max). Réessayez.",
+        next: req.body.next || '',
       });
     }
     next();
@@ -57,6 +61,7 @@ function ah(fn) {
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(
@@ -71,8 +76,26 @@ function baseUrl(req) {
 }
 
 async function getPerson(id) {
+  if (!id) return undefined;
   const rows = await sql`SELECT * FROM people WHERE id = ${id}`;
   return rows[0];
+}
+
+// The person tied to this browser/device, or undefined if it hasn't
+// registered yet (or its cookie is stale, e.g. after a database reset).
+async function getMe(req) {
+  return getPerson(req.cookies[PID_COOKIE]);
+}
+
+function requireMe(req, res, next) {
+  getMe(req).then((me) => {
+    if (!me) {
+      const next_ = req.originalUrl;
+      return res.redirect(`/register?next=${encodeURIComponent(next_)}`);
+    }
+    req.me = me;
+    next();
+  }, next);
 }
 
 async function categoryCounts(excludeId) {
@@ -89,40 +112,28 @@ async function categoryCounts(excludeId) {
   return counts;
 }
 
-// already matched (in either direction) between two people
-async function alreadyMatchedIds(personId) {
+// People matched with `personId`, in either direction, most recent first.
+async function getMatches(personId) {
   const rows = await sql`
-    SELECT matched_person_id AS pid FROM matches WHERE person_id = ${personId}
-    UNION
-    SELECT person_id AS pid FROM matches WHERE matched_person_id = ${personId}
+    SELECT p.*, m.created_at AS matched_at
+    FROM matches m
+    JOIN people p ON p.id = (
+      CASE WHEN m.person_id = ${personId} THEN m.matched_person_id ELSE m.person_id END
+    )
+    WHERE m.person_id = ${personId} OR m.matched_person_id = ${personId}
+    ORDER BY m.created_at DESC
   `;
-  return rows.map((r) => r.pid);
+  return rows;
 }
 
-async function findMatch(personId, categorie) {
-  const seen = await alreadyMatchedIds(personId);
-
-  let candidates = await sql`
-    SELECT * FROM people
-    WHERE categorie = ${categorie}
-      AND id != ${personId}
-      AND id != ALL(${seen}::text[])
+async function alreadyConnected(personId, otherId) {
+  const rows = await sql`
+    SELECT 1 FROM matches
+    WHERE (person_id = ${personId} AND matched_person_id = ${otherId})
+       OR (person_id = ${otherId} AND matched_person_id = ${personId})
+    LIMIT 1
   `;
-
-  // pool exhausted -> allow repeats, just exclude self
-  if (candidates.length === 0) {
-    candidates = await sql`
-      SELECT * FROM people WHERE categorie = ${categorie} AND id != ${personId}
-    `;
-  }
-
-  if (candidates.length === 0) return null;
-
-  const pick = candidates[Math.floor(Math.random() * candidates.length)];
-
-  await sql`INSERT INTO matches (person_id, matched_person_id) VALUES (${personId}, ${pick.id})`;
-
-  return pick;
+  return rows.length > 0;
 }
 
 // ---- Routes ----
@@ -132,7 +143,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/register', (req, res) => {
-  res.render('register', { categories: CATEGORIES, error: null });
+  res.render('register', { categories: CATEGORIES, error: null, next: req.query.next || '' });
 });
 
 // Serves private Blob photos: the stored pathname isn't fetchable directly by
@@ -157,12 +168,13 @@ app.post(
   '/register',
   uploadPhoto,
   ah(async (req, res) => {
-    const { nom, occupation, categorie, email, telephone } = req.body;
+    const { nom, occupation, categorie, email, telephone, next } = req.body;
 
     if (!nom || !nom.trim() || !CATEGORY_LABELS[categorie]) {
       return res.status(400).render('register', {
         categories: CATEGORIES,
         error: 'Merci de renseigner au moins votre nom et votre catégorie.',
+        next: next || '',
       });
     }
 
@@ -182,62 +194,71 @@ app.post(
       VALUES (${id}, ${nom.trim()}, ${(occupation || '').trim()}, ${categorie}, ${(email || '').trim()}, ${(telephone || '').trim()}, ${photo})
     `;
 
-    res.redirect(`/profile/${id}`);
+    res.cookie(PID_COOKIE, id, { maxAge: PID_MAX_AGE, httpOnly: true, sameSite: 'lax' });
+
+    // If registration was triggered by scanning someone's QR before having
+    // an account, send them straight into that connection afterwards.
+    const safeNext = next && next.startsWith('/connect/') ? next : '/profile';
+    res.redirect(safeNext);
   })
 );
 
+// My own profile — always the device that owns this browser's cookie, never
+// whichever id happens to be in the URL.
 app.get(
-  '/profile/:id',
+  '/profile',
+  requireMe,
   ah(async (req, res) => {
-    const person = await getPerson(req.params.id);
-    if (!person) return res.status(404).send('Profil introuvable.');
-
-    const matchUrl = `${baseUrl(req)}/match/${person.id}`;
-    const qrDataUrl = await QRCode.toDataURL(matchUrl, { margin: 1, width: 320 });
+    const person = req.me;
+    const connectUrl = `${baseUrl(req)}/connect/${person.id}`;
+    const qrDataUrl = await QRCode.toDataURL(connectUrl, { margin: 1, width: 320 });
 
     res.render('profile', {
       person,
       qrDataUrl,
-      matchUrl,
       categoryLabel: CATEGORY_LABELS[person.categorie],
     });
+  })
+);
+
+// Camera scanner page — decodes someone's QR client-side then follows the
+// /connect/:id link it encodes.
+app.get('/scan', requireMe, (req, res) => {
+  res.render('scan');
+});
+
+// What a personal QR code points to: scanning it connects the scanner (me,
+// from the cookie) with the scanned person (:id), regardless of who
+// physically holds the phone doing the scanning.
+app.get(
+  '/connect/:id',
+  requireMe,
+  ah(async (req, res) => {
+    const me = req.me;
+    const target = await getPerson(req.params.id);
+
+    if (!target) {
+      return res.status(404).render('connect', { self: true, target: null, me });
+    }
+
+    if (target.id === me.id) {
+      return res.render('connect', { self: true, target: null, me });
+    }
+
+    if (!(await alreadyConnected(me.id, target.id))) {
+      await sql`INSERT INTO matches (person_id, matched_person_id) VALUES (${me.id}, ${target.id})`;
+    }
+
+    res.render('connect', { self: false, target, me, categoryLabel: CATEGORY_LABELS[target.categorie] });
   })
 );
 
 app.get(
-  '/match/:id',
+  '/matches',
+  requireMe,
   ah(async (req, res) => {
-    const person = await getPerson(req.params.id);
-    if (!person) return res.status(404).send('Profil introuvable.');
-
-    const counts = await categoryCounts(person.id);
-
-    res.render('match', {
-      person,
-      categories: CATEGORIES,
-      counts,
-      categoryLabel: CATEGORY_LABELS[person.categorie],
-    });
-  })
-);
-
-app.post(
-  '/match/:id',
-  ah(async (req, res) => {
-    const person = await getPerson(req.params.id);
-    if (!person) return res.status(404).send('Profil introuvable.');
-
-    const { categorie } = req.body;
-    if (!CATEGORY_LABELS[categorie]) return res.redirect(`/match/${person.id}`);
-
-    const match = await findMatch(person.id, categorie);
-
-    res.render('result', {
-      person,
-      match,
-      categorie,
-      categoryLabel: CATEGORY_LABELS[categorie],
-    });
+    const matches = await getMatches(req.me.id);
+    res.render('matches', { me: req.me, matches, categoryLabel: CATEGORY_LABELS });
   })
 );
 

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mes matchs — Networking Match</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="wrap">
+    <%- include('partials/nav', { active: 'matches' }) %>
+    <div class="card">
+      <h1>Mes matchs</h1>
+      <p class="lead"><%= matches.length %> personne(s) rencontrée(s).</p>
+
+      <% if (matches.length === 0) { %>
+        <p class="muted">Allez dans "Scanner" pour rencontrer votre premier contact.</p>
+      <% } %>
+
+      <% matches.forEach(function(m) { %>
+        <div class="match-card">
+          <% if (m.photo) { %>
+            <img src="/photo?pathname=<%= encodeURIComponent(m.photo) %>" alt="Photo de <%= m.nom %>" style="border-radius:50%;object-fit:cover;">
+          <% } else { %>
+            <div class="avatar-circle"><%= m.nom.trim().charAt(0).toUpperCase() %></div>
+          <% } %>
+          <div class="info">
+            <h3><%= m.nom %></h3>
+            <p><%= categoryLabel[m.categorie] %><%= m.occupation ? ' · ' + m.occupation : '' %></p>
+            <% if (m.email) { %><p>📧 <a class="plain" href="mailto:<%= m.email %>"><%= m.email %></a></p><% } %>
+            <% if (m.telephone) { %><p>📱 <a class="plain" href="tel:<%= m.telephone %>"><%= m.telephone %></a></p><% } %>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+</body>
+</html>

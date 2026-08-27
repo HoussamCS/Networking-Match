@@ -3,11 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mon QR code — Networking Match</title>
+  <title>Mon profil — Networking Match</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <div class="wrap">
+    <%- include('partials/nav', { active: 'profile' }) %>
     <div class="card">
       <% if (person.photo) { %>
         <img class="profile-photo" src="/photo?pathname=<%= encodeURIComponent(person.photo) %>" alt="Photo de <%= person.nom %>">
@@ -18,11 +19,8 @@
 
       <div class="qr-box">
         <img src="<%= qrDataUrl %>" alt="QR code de <%= person.nom %>">
-        <p class="muted">Faites scanner ce QR code, ou utilisez directement le bouton ci-dessous pour trouver un match.</p>
+        <p class="muted">Montrez ce QR code à quelqu'un pour qu'il vous ajoute à ses matchs, ou allez dans "Scanner" pour scanner le sien.</p>
       </div>
-
-      <a class="btn" href="/match/<%= person.id %>">Trouver un match</a>
-      <p class="muted" style="margin-top:16px;">Gardez cette page ou faites une capture d'écran de votre QR code.</p>
     </div>
   </div>
 </body>

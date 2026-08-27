@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nouveau match — Networking Match</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="wrap">
+    <%- include('partials/nav', { active: 'scan' }) %>
+    <div class="card match-result">
+      <% if (self) { %>
+        <h1>🙂</h1>
+        <p class="lead">C'est votre propre QR code (ou un profil introuvable).</p>
+        <a class="btn" href="/scan">Scanner quelqu'un d'autre</a>
+      <% } else { %>
+        <span class="tag"><%= categoryLabel %></span>
+
+        <% if (target.photo) { %>
+          <img class="match-photo" src="/photo?pathname=<%= encodeURIComponent(target.photo) %>" alt="Photo de <%= target.nom %>">
+        <% } else { %>
+          <div class="avatar-circle"><%= target.nom.trim().charAt(0).toUpperCase() %></div>
+        <% } %>
+
+        <h1><%= target.nom %></h1>
+        <p class="lead"><%= target.occupation || '—' %></p>
+
+        <% if (target.email) { %>
+          <p class="muted">📧 <a class="plain" href="mailto:<%= target.email %>"><%= target.email %></a></p>
+        <% } %>
+        <% if (target.telephone) { %>
+          <p class="muted">📱 <a class="plain" href="tel:<%= target.telephone %>"><%= target.telephone %></a></p>
+        <% } %>
+
+        <p class="tag" style="background:#dcfce7;color:#166534;margin-top:12px;">✓ Ajouté à vos matchs</p>
+
+        <a class="btn" href="/scan">Scanner quelqu'un d'autre</a>
+        <a class="btn btn-outline" href="/matches">Voir mes matchs</a>
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>
