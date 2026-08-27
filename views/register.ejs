@@ -46,8 +46,28 @@
         <label for="email">Email (optionnel)</label>
         <input type="email" id="email" name="email" placeholder="vous@exemple.com">
 
-        <label for="telephone">Téléphone (optionnel)</label>
-        <input type="tel" id="telephone" name="telephone" placeholder="+212 6 00 00 00 00">
+        <label for="telephone">Téléphone (optionnel, pour WhatsApp)</label>
+        <div style="display:flex; gap:8px;">
+          <select id="indicatif" name="indicatif" style="flex:0 0 130px; padding:12px 8px; border:1px solid var(--border); border-radius:10px; font-size:0.95rem; background:#fafafa;">
+            <option value="212" selected>🇲🇦 +212</option>
+            <option value="33">🇫🇷 +33</option>
+            <option value="34">🇪🇸 +34</option>
+            <option value="32">🇧🇪 +32</option>
+            <option value="41">🇨🇭 +41</option>
+            <option value="49">🇩🇪 +49</option>
+            <option value="39">🇮🇹 +39</option>
+            <option value="31">🇳🇱 +31</option>
+            <option value="351">🇵🇹 +351</option>
+            <option value="44">🇬🇧 +44</option>
+            <option value="1">🇺🇸 +1</option>
+            <option value="216">🇹🇳 +216</option>
+            <option value="213">🇩🇿 +213</option>
+            <option value="971">🇦🇪 +971</option>
+            <option value="966">🇸🇦 +966</option>
+            <option value="other">Autre (taper +indicatif)</option>
+          </select>
+          <input type="tel" id="telephone" name="telephone" placeholder="6 12 34 56 78" style="flex:1;">
+        </div>
 
         <button type="submit">Générer mon QR code</button>
       </form>

@@ -3,7 +3,7 @@ const express = require('express');
 const path = require('path');
 const multer = require('multer');
 const cookieParser = require('cookie-parser');
-const { put, get } = require('@vercel/blob');
+const { put, get, list, del } = require('@vercel/blob');
 const { Readable } = require('stream');
 const QRCode = require('qrcode');
 const { randomUUID } = require('crypto');
@@ -78,6 +78,31 @@ app.use(
     next();
   })
 );
+
+// Combines the country-code <select> with the local number typed at
+// registration into one full international number (e.g. "+212612345678").
+// This is why waLink() below never has to guess a country.
+function combinePhone(indicatif, localNumber) {
+  const local = (localNumber || '').trim();
+  if (!local) return '';
+
+  if (indicatif === 'other' || !indicatif) {
+    // "Autre" — trust whatever the person typed, they were asked for +indicatif.
+    return local;
+  }
+
+  const digits = local.replace(/\D/g, '').replace(/^0+/, '');
+  return digits ? `+${indicatif}${digits}` : '';
+}
+
+// Builds a wa.me link from a saved phone number. The number is always
+// stored in full international format (see combinePhone), so this just
+// strips formatting characters — no country guessing needed.
+function waLink(telephone) {
+  if (!telephone) return null;
+  const digits = telephone.replace(/[^0-9]/g, '');
+  return digits ? `https://wa.me/${digits}` : null;
+}
 
 function baseUrl(req) {
   if (process.env.BASE_URL) {
@@ -183,7 +208,7 @@ app.post(
   '/register',
   uploadPhoto,
   ah(async (req, res) => {
-    const { nom, occupation, categorie, email, telephone, next } = req.body;
+    const { nom, occupation, categorie, email, telephone, indicatif, next } = req.body;
 
     if (!nom || !nom.trim() || !CATEGORY_LABELS[categorie]) {
       return res.status(400).render('register', {
@@ -204,9 +229,10 @@ app.post(
     }
 
     const id = randomUUID();
+    const fullPhone = combinePhone(indicatif, telephone);
     await sql`
       INSERT INTO people (id, nom, occupation, categorie, email, telephone, photo)
-      VALUES (${id}, ${nom.trim()}, ${(occupation || '').trim()}, ${categorie}, ${(email || '').trim()}, ${(telephone || '').trim()}, ${photo})
+      VALUES (${id}, ${nom.trim()}, ${(occupation || '').trim()}, ${categorie}, ${(email || '').trim()}, ${fullPhone}, ${photo})
     `;
 
     res.cookie(PID_COOKIE, id, { maxAge: PID_MAX_AGE, httpOnly: true, sameSite: 'lax' });
@@ -264,7 +290,7 @@ app.get(
       await sql`INSERT INTO matches (person_id, matched_person_id) VALUES (${me.id}, ${target.id})`;
     }
 
-    res.render('connect', { self: false, target, me, categoryLabel: CATEGORY_LABELS[target.categorie] });
+    res.render('connect', { self: false, target, me, categoryLabel: CATEGORY_LABELS[target.categorie], waLink });
   })
 );
 
@@ -273,7 +299,7 @@ app.get(
   requireMe,
   ah(async (req, res) => {
     const matches = await getMatches(req.me.id);
-    res.render('matches', { me: req.me, matches, categoryLabel: CATEGORY_LABELS });
+    res.render('matches', { me: req.me, matches, categoryLabel: CATEGORY_LABELS, waLink });
   })
 );
 
@@ -305,6 +331,28 @@ app.get(
 app.post('/admin', (req, res) => {
   res.redirect(`/admin?key=${encodeURIComponent(req.body.key || '')}`);
 });
+
+// Wipes every registration, match, and uploaded photo — for clearing test
+// data before an event, not something to run once real attendees are in.
+app.post(
+  '/admin/reset',
+  requireAdmin,
+  ah(async (req, res) => {
+    let cursor;
+    let hasMore = true;
+    while (hasMore) {
+      const listed = await list({ prefix: 'photos/', cursor, limit: 100 });
+      await Promise.all(listed.blobs.map((b) => del(b.url)));
+      cursor = listed.cursor;
+      hasMore = listed.hasMore;
+    }
+
+    await sql`DELETE FROM matches`;
+    await sql`DELETE FROM people`;
+
+    res.redirect(`/admin?key=${encodeURIComponent(req.body.key || '')}`);
+  })
+);
 
 app.get(
   '/admin/export.csv',

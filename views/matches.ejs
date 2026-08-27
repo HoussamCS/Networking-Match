@@ -29,6 +29,7 @@
             <p><%= categoryLabel[m.categorie] %><%= m.occupation ? ' · ' + m.occupation : '' %></p>
             <% if (m.email) { %><p>📧 <a class="plain" href="mailto:<%= m.email %>"><%= m.email %></a></p><% } %>
             <% if (m.telephone) { %><p>📱 <a class="plain" href="tel:<%= m.telephone %>"><%= m.telephone %></a></p><% } %>
+            <% if (waLink(m.telephone)) { %><p>💬 <a href="<%= waLink(m.telephone) %>" target="_blank" rel="noopener" style="color:#25D366;font-weight:700;text-decoration:none;">WhatsApp</a></p><% } %>
           </div>
         </div>
       <% }) %>
